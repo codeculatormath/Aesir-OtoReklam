@@ -1,10 +1,10 @@
 import os
 
 kütüphane = [
-  "colorama",
-  "pyautogui",
-  "requests"
+    "colorama",
+    "pyautogui",
+    "requests"
 ]
 
 for lib in kütüphane:
-  os.system("pip install" {lib})
+    os.system(f"pip install {lib}")
