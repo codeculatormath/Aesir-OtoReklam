@@ -1,7 +1,20 @@
 # Aesir-OtoReklam
 Sistem, siz AFK (Away From Keyboard) iken adınıza reklam yapan 100% güvenli Python dili sistemdir. Sistem sayesinde skyblock veya marketi olan yerlerde yeni müşteriler çekip fazlaca para kazanabilirsiniz. 
 
-Dakikasını sşz ayarlayabilir ve mesajlarını siz yazabilirsiniz. Hesap erişimine gerekmeden sadece launcheri açıkta bırakarak köşede durarak bekleyiniz.
+Kurulum:
+```
+git clone https://github.com/codeculatormath/Aesir-OtoReklam.git
+```
+```
+cd Aesir-OtoReklam
+```
+```
+python requrements.py
+```
+```
+python OtoReklam.py
+```
+Dakikasını siz ayarlayabilir ve mesajlarını siz yazabilirsiniz. Hesap erişimine gerekmeden sadece launcheri açıkta bırakarak köşede durarak bekleyiniz.
 
 Buglar için aşağıdaki yere gelebilirsiniz:
 Topluyo: @hasanakillibas
