@@ -7,4 +7,4 @@ kütüphane = [
 ]
 
 for lib in kütüphane:
-  os.system(f"pip install" {lib})
+  os.system("pip install" {lib})
