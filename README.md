@@ -9,9 +9,6 @@ git clone https://github.com/codeculatormath/Aesir-OtoReklam.git
 cd Aesir-OtoReklam
 ```
 ```
-python requrements.py
-```
-```
 python OtoReklam.py
 ```
 Dakikasını siz ayarlayabilir ve mesajlarını siz yazabilirsiniz. Hesap erişimine gerekmeden sadece launcheri açıkta bırakarak köşede durarak bekleyiniz.
