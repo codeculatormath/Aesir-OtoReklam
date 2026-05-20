@@ -1,143 +1,19 @@
-import pyautogui
-import time
-import tkinter as tk
-import random
-import ctypes
-import sys
-import os  # Ekranı temizlemek için gerekli
-from colorama import Fore, Style, init
+import base64
 
-# Windows terminalinde renk desteğini aktif et
-init(autoreset=True)
-
-# =====================================================================
-#                          REKLAM LİSTESİ
-# =====================================================================
-# Aşağıdaki gibi yapınız.
-reklamlar = [
-    "örnek1 /is tp örnek1",
-    "örnek2 /is go örnek2",
-    "örnek3 /ada tp örnek3",
-    "örnek4 /ada go örnek4"
-]
-# =====================================================================
-
-# --- SİSTEM AYARLARI ---
-TUS_KODLARI = [0x57, 0x41, 0x53, 0x44, 0x20, 0x10, 0x11] # W, A, S, D, Space, Shift, CTRL
-
-kök = tk.Tk()
-kök.withdraw()
-
-# --- GÖKKUŞAĞI RENK FONKSİYONLARI ---
-GOKKUSAGI_RENKLERI = [Fore.RED, Fore.YELLOW, Fore.GREEN, Fore.CYAN, Fore.BLUE, Fore.MAGENTA]
-
-def gokkusagi_yazdir(metin, yeni_satir=True):
-    renkli_metin = ""
-    for i, harf in enumerate(metin):
-        if harf == " ":
-            renkli_metin += harf
-        else:
-            renk = GOKKUSAGI_RENKLERI[i % len(GOKKUSAGI_RENKLERI)]
-            renkli_metin += f"{renk}{harf}"
-    
-    if yeni_satir:
-        sys.stdout.write(renkli_metin + Style.RESET_ALL + "\n")
-    else:
-        sys.stdout.write(renkli_metin + Style.RESET_ALL)
-    sys.stdout.flush()
-
-def gokkusagi_animasyonlu_yazdir(metin, adim_sayisi):
-    renkli_metin = ""
-    for i, harf in enumerate(metin):
-        if harf == " ":
-            renkli_metin += harf
-        else:
-            renk = GOKKUSAGI_RENKLERI[(i + adim_sayisi) % len(GOKKUSAGI_RENKLERI)]
-            renkli_metin += f"{renk}{harf}"
-    sys.stdout.write(f"\r{renkli_metin}{Style.RESET_ALL}")
-    sys.stdout.flush()
-
-# --- MAKRO MOTORU ---
-def tus_basili_mi(tus_kodu):
-    return bool(ctypes.windll.user32.GetAsyncKeyState(tus_kodu) & 0x8000)
-
-def oyuncu_yuruyor_mu():
-    for tus in TUS_KODLARI:
-        if tus_basili_mi(tus):
-            return True
-    return False
-
-def panoya_kopyala(metin):
-    kök.clipboard_clear()
-    kök.clipboard_append(metin)
-    kök.update()
-
-def mesaj_gonder(tam_metin):
-    yurume_mesaji_basildi = False
-    adim = 0
-    while oyuncu_yuruyor_mu():
-        gokkusagi_animasyonlu_yazdir(f"[DURAKLATILDI] Hareket algılandı, durmanız bekleniyor...          ", adim)
-        adim += 1
-        time.sleep(0.1)
-        yurume_mesaji_basildi = True
+sifreli_makro_kodu = (
+"aW1wb3J0IHB5YXV0b2d1aQ0KaW1wb3J0IHRpbWUNCmltcG9ydCB0a2ludGVyIGFzIHRrDQppbXBvcnQgcmFuZG9tDQppbXBvcnQgY3R5cGVzDQppbXBvcnQgc3lzDQppbXBvcnQgc3VicHJvY2Vzcw0KaW1wb3J0IG9zDQoNCmRlZiBrdXR1cGhhbmVsZXJpX2tvbnRyb2xfZXQoKToNCg0KICAgIGdlcmVrbGlfa3V0dXBoYW5lbGVyID0gWyJweWF1dG9ndWkiLCAidGtpbnRlciIsICJyYW5kb20iXQ0KICAgIA0KICAgIGVrc2tfYnVsdW5kdSA9IEZhbHNlDQogICAgZm9yIGxpYiBpbiBnZXJla2xpX2t1dHVwaGFuZWxlcjoNCiAgICAgICAgdHJ5Og0KICAgICAgICAgICAgX19pbXBvcnRfXyhsaWIpDQogICAgICAgIGV4Y2VwdCBJbXBvcnRFcnJvcjoNCiAgICAgICAgICAgIHByaW50KGYiW1PEsFNURU1dIGB7bGlifWAga8O8dMO8cGhhbmVzaSBla3Npaywgb3RvbWF0aWsgecO8a2xlbml5b3IuLi4iKQ0KICAgICAgICAgICAgdHJ5Og0KICAgICAgICAgICAgICAgIA0KICAgICAgICAgICAgICAgIHN1YnByb2Nlc3MuY2hlY2tfY2FsbChbc3lzLmV4ZWN1dGFibGUsICItbSIsICJwaXAiLCAiaW5zdGFsbCIsIGxpYl0pDQogICAgICAgICAgICAgICAgcHJpbnQoZiJbU8SwU1RFTV0gYHtsaWJ9YCBiYcWfYXLEsXlsYSB5w7xrbGVuZGkuIikNCiAgICAgICAgICAgICAgICBla3NrX2J1bHVuZHUgPSBUcnVlDQogICAgICAgICAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6DQogICAgICAgICAgICAgICAgcHJpbnQoZiJbSEFUQV0gYHtsaWJ9YCB5w7xrbGVuaXJrZW4gYmlyIHNvcnVuIG9sdcWfdHU6IHtlfSIpDQogICAgICAgICAgICAgICAgcHJpbnQoIltTxLBTVEVNXSBMw7x0ZmVuIGtvbXV0IHNhdMSxcsSxbsSxIChDTUQpIHnDtm5ldGljaSBvbGFyYWsgYcOnxLFwIGBwaXAgaW5zdGFsbCBweWF1dG9ndWlgIHlhemFyYWsgbWFudWVsIHnDvGtsZXlpbi4iKQ0KICAgICAgICAgICAgICAgIHN5cy5leGl0KDEpDQogICAgICAgICAgICAgICAgDQogICAgaWYgZWtza19idWx1bmR1Og0KICAgICAgICBwcmludCgiW1PEsFNURU1dIFTDvG0gZWtzaWsga8O8dMO8cGhhbmVsZXIgdGFtYW1sYW5kxLEuIE1ha3JvIGJhxZ9sYXTEsWzEsXlvci4uLlxuIikNCiAgICAgICAgDQogICAgICAgIG9zLmV4ZWN2KHN5cy5leGVjdXRhYmxlLCBbJ3B5dGhvbiddICsgc3lzLmFyZ3YpDQoNCmt1dHVwaGFuZWxlcmlfa29udHJvbF9ldCgpDQoNCnB5YXV0b2d1aS5GQUlMU0FGRSA9IFRydWUNCg0KcmVrbGFtbGFyID0gWw0KICAgICJGb3NpbCB2ZSBNYWRlbmNpIFBhcmFzxLEgYWzEsW7EsXIgc2F0xLFsxLFyIC9pcyB0cCBjdW1odXJfc2F2Y2lzaSIsDQogICAgIk1hZGVuIEJsb2tsYXLEsSBzYXTEsWzEsXIgL2lzIHRwIEN1bWh1cl9TYXZjaXNpIiwNCiAgICAiRG9sYXIgdcOndXlvciBtYXJrZXRpbWxlIHXDpyAvaXMgdHAgQ3VtaHVyX1NhdmNpc2kiLA0KICAgICJIYXlhdCBrxLFzYSBtYXJrZXRpbWUgZ2VsIC9pcyB0cCBDdW1odXJfU2F2Y2lzaSINCl0NCg0KVFVTX0tPRExBUkkgPSBbMHg1NywgMHg0MSwgMHg1MywgMHg0NCwgMHgyMCwgMHgxMCwgMHgxMV0gIyBXLCBBLCBTLCBELCBTcGFjZSwgU2hpZnQsIEN0cmwNCkY0X1RVU19LT0RVID0gMHg3MyANCg0Ka8O2ayA9IHRrLlRrKCkNCmvDtmsud2l0aGRyYXcoKQ0KDQpmNF9kdXJha2xhdGlsZGkgPSBGYWxzZQ0KZjRfa2lsaXRsaSA9IEZhbHNlDQoNCmRlZiB0dXNhX2Jhc192ZV9jZWsodHVzX2tvZHUsIHN1cmU9MC4wNSk6DQogICAgY3R5cGVzLndpbmRsbC51c2VyMzIua2V5YmRfZXZlbnQodHVzX2tvZHUsIDAsIDAsIDApDQogICAgdGltZS5zbGVlcChzdXJlKQ0KICAgIGN0eXBlcy53aW5kbGwudXNlcjMyLmtleWJkX2V2ZW50KHR1c19rb2R1LCAwLCAyLCAwKQ0KDQpkZWYgdHVzX2Jhc2lsaV9taSh0dXNfa29kdSk6DQogICAgcmV0dXJuIGJvb2woY3R5cGVzLndpbmRsbC51c2VyMzIuR2V0QXN5bmNLZXlTdGF0ZSh0dXNfa29kdSkgJiAweDgwMDApDQoNCmRlZiBveXVuY3VfeXVydXlvcl9tdSgpOg0KICAgIGZvciB0dXMgaW4gVFVTX0tPRExBUkk6DQogICAgICAgIGlmIHR1c19iYXNpbGlfbWkodHVzKToNCiAgICAgICAgICAgIHJldHVybiBUcnVlDQogICAgcmV0dXJuIEZhbHNlDQoNCmRlZiBwYW5veWFfa29weWFsYShtZXRpbik6DQogICAgdHJ5Og0KICAgICAgICBrw7ZrLmNsaXBib2FyZF9jbGVhcigpDQogICAgICAgIGvDtmsuY2xpcGJvYXJkX2FwcGVuZChtZXRpbikNCiAgICAgICAga8O2ay51cGRhdGUoKQ0KICAgIGV4Y2VwdCBFeGNlcHRpb246DQogICAgICAgIHBhc3MNCg0KZGVmIGY0X2tvbnRyb2xfZXQoKToNCiAgICBnbG9iYWwgZjRfZHVyYWtsYXRpbGRpLCBmNF9raWxpdGxpDQogICAgaWYgdHVzX2Jhc2lsaV9taShGNF9UVVNfS09EVSk6DQogICAgICAgIGlmIG5vdCBmNF9raWxpdGxpOg0KICAgICAgICAgICAgZjRfZHVyYWtsYXRpbGRpID0gbm90IGY0X2R1cmFrbGF0aWxkaQ0KICAgICAgICAgICAgZjRfa2lsaXRsaSA9IFRydWUNCiAgICAgICAgICAgIGlmIGY0X2R1cmFrbGF0aWxkaToNCiAgICAgICAgICAgICAgICBwcmludCgiXG5bISFdIEY0IEJBU0lMREk6IE1BS1JPIEdFw4fEsEPEsCBPTEFSQUsgRE9ORFVSVUxEVSFcbiIpDQogICAgICAgICAgICBlbHNlOg0KICAgICAgICAgICAgICAgIHByaW50KCJcblsrK10gRjQgQkFTSUxESTogTWFrcm8gw6fDtnrDvGxkw7wsIGRldmFtIGVkaXlvci4uLlxuIikNCiAgICAgICAgICAgIHRpbWUuc2xlZXAoMC4yKQ0KICAgIGVsc2U6DQogICAgICAgIGY0X2tpbGl0bGkgPSBGYWxzZQ0KDQpkZWYgbWVzYWpfZ29uZGVyKHRhbV9tZXRpbik6DQogICAgZHVyYWtsYXRtYV9tZXNhamlfdmVyaWxkaSA9IEZhbHNlDQogICAgDQogICAgd2hpbGUgb3l1bmN1X3l1cnV5b3JfbXUoKSBvciBmNF9kdXJha2xhdGlsZGk6DQogICAgICAgIGY0X2tvbnRyb2xfZXQoKQ0KICAgICAgICBpZiBmNF9kdXJha2xhdGlsZGk6DQogICAgICAgICAgICBwcmludCgiW0Y0IMSwTEUgRFVSRFVSVUxEVV0gRGV2YW0gZXRtZWsgacOnaW4gdGVrcmFyIEY0IGJhc8Sxbi4uLiIpDQogICAgICAgIGVsc2U6DQogICAgICAgICAgICBwcmludCgiW0RVUkFLTEFUSUxESV0gSGFyZWtldCBhbGfEsWxhbmTEsSwgZHVybWFuxLF6IGJla2xlbml5b3IuLi4iKQ0KICAgICAgICAgICAgDQogICAgICAgIHRpbWUuc2xlZXAoMS4wKQ0KICAgICAgICBkdXJha2xhdG1hX21lc2FqaV92ZXJpbGRpID0gVHJ1ZQ0KICAgICAgICANCiAgICBpZiBkdXJha2xhdG1hX21lc2FqaV92ZXJpbGRpOg0KICAgICAgICBwcmludCgiWytdIE1ha3JvIMOnw7Z6w7xsZMO8LiBSZWtsYW0gZ8O2bmRlcmlsaXlvci4uLiIpDQogICAgICAgIA0KICAgIHBhbm95YV9rb3B5YWxhKHRhbV9tZXRpbikNCiAgICBweWF1dG9ndWkucHJlc3MoJ3QnKQ0KICAgIHRpbWUuc2xlZXAoMC4zKQ0KICAgIHB5YXV0b2d1aS5ob3RrZXkoJ2N0cmwnLCAndicpDQogICAgdGltZS5zbGVlcCgwLjMpDQogICAgcHlhdXRvZ3VpLnByZXNzKCdlbnRlcicpDQoNCm9zLnN5c3RlbSgnY2xzJyBpZiBvcy5uYW1lID09ICdudCcgZWxzZSAnY2xlYXInKQ0KDQpwcmludCgiPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09IikNCnByaW50KCIgKiBBZXNpci1PdG9SZWtsYW0iKQ0KcHJpbnQoIj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PSIpDQpwcmludCgiICogWWFwxLFtY8SxOiBDb2RlY3VsYXRvcm1hdGggJiBoYXNhbmFraWxsaWJhcyIpDQpwcmludCgiICogTW9kOiBTdGFuZGFydCBSZWtsYW0gJiBHZWNpa21lIE1ha3Jvc3UgKFNhZGUgJiBJRExFIFV5dW1sdSBNb2QpIikNCnByaW50KCI9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT1cbiIpDQoNCnByaW50KCJbU8SwU1RFTV0gTWFrcm8gMTAgc2FuaXllIGnDp2luZGUgYmHFn2xheWFjYWssIGNoYXRpIGHDp2FjYcSfxLFuxLF6IHBlbmNlcmV5ZSBvZGFrbGFuxLFuLi4uIikNCg0KZm9yIGkgaW4gcmFuZ2UoMTAsIDAsIC0xKToNCiAgICBwcmludChmIkthbGFuIFPDvHJlOiB7aX0gc2FuaXllLi4uIikNCiAgICB0aW1lLnNsZWVwKDEuMCkNCg0KcHJpbnQoIlxuW0JBxZ5MQURJXSBEw7ZuZ8O8IHRldGlrbGVuZGkhXG4iKQ0KDQp0cnk6DQogICAgd2hpbGUgVHJ1ZToNCiAgICAgICAga2FyaXNpa19yZWtsYW1sYXIgPSBsaXN0KHJla2xhbWxhcikNCiAgICAgICAgcmFuZG9tLnNodWZmbGUoa2FyaXNpa19yZWtsYW1sYXIpDQogICAgICAgIA0KICAgICAgICBmb3Igc2lyYWRha2lfbWVzYWogaW4ga2FyaXNpa19yZWtsYW1sYXI6DQogICAgICAgICAgICANCiAgICAgICAgICAgIHdoaWxlIGY0X2R1cmFrbGF0aWxkaToNCiAgICAgICAgICAgICAgICBmNF9rb250cm9sX2V0KCkNCiAgICAgICAgICAgICAgICBwcmludCgiW0Y0IMSwTEUgRFVSRFVSVUxEVV0gU8O8cmUgZG9uZHVydWxkdSwgRjQgYmVrbGVuaXlvci4uLiIpDQogICAgICAgICAgICAgICAgdGltZS5zbGVlcCgxLjApDQogICAgICAgICAgICAgICAgDQogICAgICAgICAgICBwcmludChmIlsrXSBHw7ZuZGVyaWxpeW9yOiB7c2lyYWRha2lfbWVzYWpbOjQwXX0uLi4gIikNCiAgICAgICAgICAgIG1lc2FqX2dvbmRlcihzaXJhZGFraV9tZXNhaikNCiAgICAgICAgICAgIA0KICAgICAgICAgICAgYmVrbGVtZSA9IHJhbmRvbS51bmlmb3JtKDEyLjAsIDE5LjApDQogICAgICAgICAgICBhZmtfc2F5YWNpID0gMCANCiAgICAgICAgICAgIA0KICAgICAgICAgICAgd2hpbGUgYmVrbGVtZSA+IDA6DQogICAgICAgICAgICAgICAgZjRfa29udHJvbF9ldCgpDQogICAgICAgICAgICAgICAgDQogICAgICAgICAgICAgICAgaWYgZjRfZHVyYWtsYXRpbGRpOg0KICAgICAgICAgICAgICAgICAgICBwcmludCgiW0Y0IMSwTEUgRFVSRFVSVUxEVV0gU8O8cmUgZHVyZHVydWxkdSwgRjQgYmVrbGVuaXlvci4uLiIpDQogICAgICAgICAgICAgICAgICAgIHRpbWUuc2xlZXAoMS4wKQ0KICAgICAgICAgICAgICAgICAgICBjb250aW51ZQ0KICAgICAgICAgICAgICAgIA0KICAgICAgICAgICAgICAgIGFma19zYXlhY2kgKz0gMQ0KICAgICAgICAgICAgICAgIGlmIGFma19zYXlhY2kgPj0gNDoNCiAgICAgICAgICAgICAgICAgICAgYWZrX3NheWFjaSA9IDANCiAgICAgICAgICAgICAgICAgICAgaWYgbm90IG95dW5jdV95dXJ1eW9yX211KCk6DQogICAgICAgICAgICAgICAgICAgICAgICBzZWNpbGVuX3lvbiA9IHJhbmRvbS5jaG9pY2UoWzB4NDEsIDB4NDRdKSANCiAgICAgICAgICAgICAgICAgICAgICAgIHR1c2FfYmFzX3ZlX2NlayhzZWNpbGVuX3lvbiwgc3VyZT0wLjA1KQ0KICAgICAgICAgICAgICAgIA0KICAgICAgICAgICAgICAgIHByaW50KGYiWy1dIFNvbnJha2kgcmVrbGFtYSBrYWxhbiBzw7xyZToge2ludChiZWtsZW1lKX0gc2FuaXllLi4uIFtBbnRpLUFGSyBBa3RpZl0iKQ0KICAgICAgICAgICAgICAgIHRpbWUuc2xlZXAoMS4wKQ0KICAgICAgICAgICAgICAgIGJla2xlbWUgLT0gMS4wDQogICAgICAgICAgICAgICAgDQpleGNlcHQgKEtleWJvYXJkSW50ZXJydXB0LCBweWF1dG9ndWkuRmFpbFNhZmVFeGNlcHRpb24pOg0KICAgIHByaW50KCJcbltLQVBBVElMREldIE1ha3JvIGfDvHZlbmxpIMWfZWtpbGRlIHNvbmxhbmTEsXLEsWxkxLEuIikNCg=="
+)
+def utf8_b64_calistir(sifreli_metin):
+    try:
+        byte_verisi = sifreli_metin.encode('utf-8')
+        cozulmus_byte = base64.b64decode(byte_verisi)
         
-    if yurume_mesaji_basildi:
-        sys.stdout.write("\n")
+        orijinal_kod = cozulmus_byte.decode('utf-8')
         
-    panoya_kopyala(tam_metin)
-    pyautogui.press('t')
-    time.sleep(0.25)
-    pyautogui.hotkey('ctrl', 'v')
-    time.sleep(0.2)
-    pyautogui.press('enter')
-
-os.system('cls' if os.name == 'nt' else 'clear')
-
-# --- BAŞLANGIÇ EKRANI VE AMBİYANS ---
-gokkusagi_yazdir("=============================================================================================================")
-gokkusagi_yazdir(r"    ___             _             ____  __        ____        __   __                                         ")
-gokkusagi_yazdir(r"   /   | ___  _____(_)____       / __ \/ /_____  / __ \___  / /__/ /___ _____ ___                             ")
-gokkusagi_yazdir(r"  / /| |/ _ \/ ___/ / ___/_____/ / / / __/ __ \/ /_/ / _ \/ //_/ / __ `/ __ `__ \                            ")
-gokkusagi_yazdir(r" / ___ /  __(__  ) / /  /_____/ /_/ / /_/ /_/ / _, _/  __/ ,< / / /_/ / / / / / /                            ")
-gokkusagi_yazdir(r"/_/  |_\___/____/_/_/          \____/\__/\____/_/ |_|\___/_/|_/_/\__,_/_/ /_/ /_/                             ")
-gokkusagi_yazdir("=============================================================================================================")
-gokkusagi_yazdir(" * Yapımcı: Codeculatormath & hasanakillibas")
-gokkusagi_yazdir(" * Sürüm: v1.0 | Dil: Python 3.14+ Uyumlu")
-gokkusagi_yazdir(" * Güvenlik: Rastgele süre geciktirmesi ve akıllı hareket takibi aktif.")
-gokkusagi_yazdir("=====================================================================")
-sys.stdout.write("\n")
-gokkusagi_yazdir("[SİSTEM] 10 saniye içinde Minecraft ekranına geçiş yapınız...")
-
-# İlk açılış geri sayımı
-adim_sayaci = 0
-for i in range(10, 0, -1):
-    for _ in range(10):
-        gokkusagi_animasyonlu_yazdir(f"Kalan Süre: {i} saniye... ", adim_sayaci)
-        adim_sayaci += 1
-        time.sleep(0.1)
-
-sys.stdout.write("\n\n")
-gokkusagi_yazdir("[BAŞLADI] Makro başarıyla tetiklendi! Oyuna dönebilirsiniz.")
-sys.stdout.write("\n")
-
-try:
-    while True:
-        karisik_reklamlar = list(reklamlar)
-        random.shuffle(karisik_reklamlar)
+        exec(orijinal_kod)
         
-        for siradaki_mesaj in karisik_reklamlar:
-            gokkusagi_yazdir(f"[+] Gönderiliyor: {siradaki_mesaj[:40]}... ")
-            
-            mesaj_gonder(siradaki_mesaj)
-            
-            bekleme = random.uniform(9.0, 16.0)
-            
-            while bekleme > 0:
-                gokkusagi_animasyonlu_yazdir(f"[-] Sonraki reklama kalan süre: {bekleme:.1f} saniye...   ", adim_sayaci)
-                adim_sayaci += 1
-                time.sleep(0.1)
-                bekleme -= 0.1
-                
-except KeyboardInterrupt:
-    sys.stdout.write("\n")
-    gokkusagi_yazdir("[KAPATILDI] Makro kullanıcı isteğiyle sonlandırıldı. Yine bekleriz!")
+    except Exception as e:
+        print(f"Hata! Kod çözülürken veya çalıştırılırken bir problem oluştu: {e}")
+
+if __name__ == "__main__":
+    utf8_b64_calistir(sifreli_makro_kodu)
